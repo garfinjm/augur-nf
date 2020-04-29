@@ -45,6 +45,8 @@ if (params.filter) {
 
     process filter{
       publishDir "${params.outdir}/filter", mode:'copy'
+      
+      stageInMode = 'copy'
     
       input:
       file(fasta) from sequences
@@ -75,6 +77,7 @@ else {
 
 process align{
   publishDir "${params.outdir}/align", mode:'copy'
+  stageInMode = 'copy'
 
   input:
   file(filtered_fasta) from input_sequences
@@ -95,6 +98,7 @@ process align{
 
 process tree{
   publishDir "${params.outdir}/tree", mode:'copy'
+  stageInMode = 'copy'
 
   input:
   file(msa) from raw_tree_alignment
@@ -112,6 +116,7 @@ process tree{
 
 process refine{
   publishDir "${params.outdir}/refine", mode:'copy'
+  stageInMode = 'copy'
 
   input:
   file(tree) from raw_tree
@@ -140,6 +145,7 @@ process refine{
 
 process ancestral{
   publishDir "${params.outdir}/ancestral_nt", mode:'copy'
+  stageInMode = 'copy'
 
   input:
   file(tree) from refined_tree_ancestral
@@ -159,6 +165,7 @@ process ancestral{
 
 process translate{
   publishDir "${params.outdir}/ancestral_aa", mode:'copy'
+  stageInMode = 'copy'
 
   input:
   file(tree) from refined_tree_translate
@@ -180,6 +187,7 @@ process translate{
 
 process traits{
   publishDir "${params.outdir}/traits", mode:'copy'
+  stageInMode = 'copy'
 
   input:
   file(tree) from refined_tree_traits
@@ -205,6 +213,7 @@ process traits{
 
 process export{
   publishDir "${params.outdir}", mode:'copy'
+  stageInMode = 'copy'
 
   input:
   file(tree) from refined_tree_export
@@ -236,6 +245,7 @@ process export{
 
 process export_with_traits{
   publishDir "${params.outdir}", mode:'copy'
+  stageInMode = 'copy'
 
   input:
   file(tree) from refined_tree_export_traits
