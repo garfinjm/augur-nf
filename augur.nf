@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 //Description: Nextflow implementation of Nextstrain's Augur pipeline
-//Available:
+	//Available: https://github.com/nextstrain/augur
 //Authors of this Nextflow: Abigail Shockey
 //Email: abigail.shockey@slh.wisc.edu
 
@@ -41,7 +41,7 @@ if (params.filter) {
     Channel
         .fromPath( "${params.filter}")
         .ifEmpty { exit 1, "Cannot find filter file in: ${params.filter}" }
-        .set { sequences }
+        .set { dropped_strains }
 
     process filter{
       publishDir "${params.outdir}/filter", mode:'copy'
@@ -61,9 +61,11 @@ if (params.filter) {
       augur filter \
         --sequences ${fasta} \
         --metadata ${metadata} \
+        --exclude ${exclude} \
         --output filtered.fasta \
         --group-by country year month \
-        --min-date ${params.min_date}
+        --min-date ${params.min_date} \
+        --sequences-per-group ${params.seq_per_group}
       """
     }
 }
@@ -185,33 +187,29 @@ process translate{
   """
 }
 
-process traits{
-  publishDir "${params.outdir}/traits", mode:'copy'
-  stageInMode = 'copy'
-
-  input:
-  file(tree) from refined_tree_traits
-  file(metadata) from traits_metadata
-
-  output:
-  file "traits.json" into traits_export
-
-  when:
-  params.traits == "TRUE"
-
-  shell:
-  """
-  augur traits \
-    --tree ${tree} \
-    --metadata ${metadata} \
-    --output traits.json \
-    --columns region country \
-    --confidence
-  """
+if (params.traits) {
+    process traits {
+        publishDir "${params.outdir}/traits", mode:'copy'
+        input:
+        file(tree) from refined_tree_traits
+        file(metadata) from traits_metadata
+        output:
+        file "traits.json" into traits_export
+        
+        shell:
+        """
+        augur traits \
+            --tree ${tree} \
+            --metadata ${metadata} \
+            --output traits.json \
+            --columns region country \
+            --confidence
+        """
+    }
 }
 
 
-process export{
+	process export {
   publishDir "${params.outdir}", mode:'copy'
   stageInMode = 'copy'
 
@@ -235,7 +233,7 @@ process export{
     --metadata ${metadata} \
     --node-data ${branch_lengths} \
                 ${nt_muts} \
-                ${nt_muts} \
+                ${aa_muts} \
     --colors ${colors} \
     --lat-longs ${lat_long} \
     --auspice-config ${config} \
@@ -243,38 +241,36 @@ process export{
   """
 }
 
-process export_with_traits{
-  publishDir "${params.outdir}", mode:'copy'
-  stageInMode = 'copy'
 
-  input:
-  file(tree) from refined_tree_export_traits
-  file(metadata) from metadata_export_traits
-  file(branch_lengths) from branch_lengths_export_traits
-  file(nt_muts) from ancestral_nt_export_traits
-  file(aa_muts) from ancestral_aa_export_traits
-  file(traits) from traits_export
-  file(colors) from colors_export_traits
-  file(lat_long) from lat_long_export_traits
-
-  output:
-  file "auspice.json"
-
-  when:
-  params.traits == "TRUE"
-
-  shell:
-  """
-  augur export v2 \
-    --tree ${tree} \
-    --metadata ${metadata} \
-    --node-data ${branch_lengths} \
-                ${nt_muts} \
-                ${nt_muts} \
-                ${traits} \
-    --colors ${colors} \
-    --lat-longs ${lat_long} \
-    --auspice-config ${config} \
-    --output auspice.json
-  """
+if (params.traits) {
+    process export_with_traits {
+        publishDir "${params.outdir}", mode:'copy'
+        input:
+        file(tree) from refined_tree_export_traits
+        file(metadata) from metadata_export_traits
+        file(branch_lengths) from branch_lengths_export_traits
+        file(nt_muts) from ancestral_nt_export_traits
+        file(aa_muts) from ancestral_aa_export_traits
+        file(traits) from traits_export
+        file(colors) from colors_export_traits
+        file(lat_long) from lat_long_export_traits
+        file(config) from config_export_traits
+        output:
+        file "auspice.json"
+        
+        shell:
+        """
+        augur export v2 \
+        --tree ${tree} \
+        --metadata ${metadata} \
+        --node-data ${branch_lengths} \
+                    ${nt_muts} \
+                    ${aa_muts} \
+                    ${traits} \
+        --colors ${colors} \
+        --lat-longs ${lat_long} \
+        --auspice-config ${config} \
+        --output auspice.json
+        """
+    }
 }
