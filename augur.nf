@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 //Description: Nextflow implementation of Nextstrain's Augur pipeline
-	//Available: https://github.com/nextstrain/augur
+//Available: https://github.com/nextstrain/augur
 //Authors of this Nextflow: Abigail Shockey
 //Email: abigail.shockey@slh.wisc.edu
 
@@ -45,7 +45,6 @@ if (params.filter) {
 
     process filter{
       publishDir "${params.outdir}/filter", mode:'copy'
-      
       stageInMode = 'copy'
     
       input:
@@ -195,7 +194,6 @@ if (params.traits) {
         file(metadata) from traits_metadata
         output:
         file "traits.json" into traits_export
-        
         shell:
         """
         augur traits \
@@ -209,7 +207,7 @@ if (params.traits) {
 }
 
 
-	process export {
+process export {
   publishDir "${params.outdir}", mode:'copy'
   stageInMode = 'copy'
 
@@ -240,7 +238,6 @@ if (params.traits) {
     --output auspice.json
   """
 }
-
 
 if (params.traits) {
     process export_with_traits {
