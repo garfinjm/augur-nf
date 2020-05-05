@@ -7,6 +7,8 @@
 
 // Input channels
 
+params.threads = 2
+
 Channel
     .fromPath( "${params.reference}")
     .ifEmpty { exit 1, "Cannot find reference sequence in: ${params.reference}" }
@@ -90,6 +92,7 @@ process align{
   shell:
   """
   augur align \
+    --nthreads ${params.threads} \
     --sequences ${filtered_fasta} \
     --reference-sequence ${ref} \
     --output aligned.fasta \
@@ -110,6 +113,7 @@ process tree{
   shell:
   """
   augur tree \
+    --nthreads ${params.threads} \
     --alignment ${msa} \
     --output raw_tree.newick
   """
@@ -136,7 +140,7 @@ process refine{
     --metadata ${metadata} \
     --output-tree refined_tree.newick \
     --output-node-data branch_lengths.json \
-    --timetree \
+    #--timetree \
     --coalescent opt \
     --date-confidence \
     --date-inference marginal \
