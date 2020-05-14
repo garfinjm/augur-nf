@@ -193,6 +193,7 @@ process translate{
 if (params.traits) {
     process traits {
         publishDir "${params.outdir}/traits", mode:'copy'
+        stageInMode = 'copy'
         input:
         file(tree) from refined_tree_traits
         file(metadata) from traits_metadata
@@ -204,7 +205,7 @@ if (params.traits) {
             --tree ${tree} \
             --metadata ${metadata} \
             --output traits.json \
-            --columns region country \
+            --columns zip \
             --confidence
         """
     }
@@ -246,6 +247,7 @@ process export {
 if (params.traits) {
     process export_with_traits {
         publishDir "${params.outdir}", mode:'copy'
+        stageInMode = 'copy'
         input:
         file(tree) from refined_tree_export_traits
         file(metadata) from metadata_export_traits
