@@ -140,7 +140,7 @@ process refine{
     --metadata ${metadata} \
     --output-tree refined_tree.newick \
     --output-node-data branch_lengths.json \
-    #--timetree \
+    --timetree \
     --coalescent opt \
     --date-confidence \
     --date-inference marginal \
